@@ -1,0 +1,38 @@
+ML_BUILD_DIR=tmp/build/ml_services
+
+####
+#First the first time, register of pyarmor on local machine :
+#1. Download reregistration archive file
+#2. Update PYARMOR_REGISTERATION_FILE_PATH with path of archive file in Makefile.pyarmor
+#3. To regsiter run: make -f Makefile.pyarmor register
+#From there after:
+#1.To obfuscate : make -f Makfile.pyarmor obfuscate.ml
+#2.Build docker(member_claims_alerts_process_job): make -f Makefile.build docker.build.member_claims_alerts_process_job
+###
+
+## Note: pyarmor licence: we dont want keep it in project strucutre,
+## so please use exact paths
+# pyarmor license path
+PYARMOR_LICENSE_PATH=${PWD}/licenses/ml_services/license.lic
+# Full path where pyarmor regiter licence zip exists
+PYARMOR_REGISTERATION_FILE_PATH=/Users/spasem/Downloads/pyarmor-regfile-1.zip
+
+# obfuscate ml files
+obfuscate.ml:
+	# Remove existing build if any
+	rm -rf ${ML_BUILD_DIR}
+	# Make new build dir
+	mkdir -p ${ML_BUILD_DIR}
+	# obfuscate ml_services directory with platforms
+	pyarmor obfuscate --platform centos6.x86_64.7 --platform linux.x86_64 --platform linux.x86 --platform darwin.x86_64 --platform windows.x86_64 --platform windows.x86 --output ${ML_BUILD_DIR} --recursive ml_services/ml_model.py --exclude __init__.py
+	# creates temprary license in licences/ml_services folder and  capsule in user root .pyarmor_capsule.zip
+	pyarmor licenses ml_services --expired 2030-01-31
+	# copy real licence to bootstrap
+	cp ${PYARMOR_LICENSE_PATH} ${ML_BUILD_DIR}/pytransform/license.lic
+
+# First steps for pyarmor
+register:
+	# install pyarmor
+	pip install pyarmor
+	# register licence
+	pyarmor register ${PYARMOR_REGISTERATION_FILE_PATH}
